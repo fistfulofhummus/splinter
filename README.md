@@ -14,12 +14,13 @@ Now just execute the implant on a Windows machine. If you want to terminate exec
 
 ## TO-DO
 
- - [x]  Add a menu a la meterpreter
- - [ ]  Load and execute shellcode
- - [ ]  Upload/Download
+ - [x] Add a menu a la meterpreter
+ - [ ] Load and execute shellcode
+ - [ ] Upload/Download
  - [ ] Persistence
  - [x] Keylogging
- - [ ] RickRoll
+ - [x] RickRoll
+ - [ ] Use Go Routines whenever possible
 
 ## Notes:
 I will not be responsible for any illegal activity conducted with this code.
