@@ -18,7 +18,7 @@ Now just execute the implant on a Windows machine. If you want to terminate exec
  - [ ]  Load and execute shellcode
  - [ ]  Upload/Download
  - [ ] Persistence
- - [ ] Keylogging
+ - [x] Keylogging
  - [ ] RickRoll
 
 ## Notes:
