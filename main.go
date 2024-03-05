@@ -136,11 +136,13 @@ func cd(conn *net.Conn, command *string, pImplantWD *string) bool {
 func ls(conn *net.Conn, implantWD *string) {
 	dirFS, _ := os.ReadDir(*implantWD)
 	dirListing := ""
-	for e, _ := range dirFS {
+	for e := range dirFS {
 		dirInfo, _ := dirFS[e].Info()
 		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
 	}
-	(*conn).Write([]byte("\n" + dirListing + "\n"))
+	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n"))
+	(*conn).Write([]byte("		----		" + "----		" + "	----" + "\n"))
+	(*conn).Write([]byte(dirListing + "\n"))
 }
 
 func main() {
