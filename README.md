@@ -15,6 +15,9 @@ Now just execute the implant on a Windows machine. If you want to terminate exec
 ## TO-DO
 
  - [x] Add a menu a la meterpreter
+ - [x] cd
+ - [x] ls
+ - [x] pwd 
  - [ ] Load and execute shellcode
  - [ ] Upload/Download
  - [ ] Persistence
